@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests in Docker image with Postgres
+        run: |
+          docker compose -f docker/docker-compose.ci.yml up --build --abort-on-container-exit --exit-code-from app
+          docker compose -f docker/docker-compose.ci.yml down -v
