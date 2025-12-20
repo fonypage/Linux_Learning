@@ -13,5 +13,5 @@ jobs:
       - name: Run tests in Docker image with Postgres
         working-directory: tasks/docker
         run: |
-          docker compose -f docker/docker-compose.ci.yml up --build --abort-on-container-exit --exit-code-from app
-          docker compose -f docker/docker-compose.ci.yml down -v
+          docker compose -f docker-compose.ci.yml up --build --abort-on-container-exit --exit-code-from app
+          docker compose -f docker-compose.ci.yml down -v
