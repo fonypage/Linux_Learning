@@ -6,10 +6,10 @@ from sqlalchemy.future import select
 from src import models, schemas
 from src.database import init_db, get_db
 
+ROOT_PATH = os.getenv("ROOT_PATH", "").rstrip("/")
 app = FastAPI(root_path=ROOT_PATH)
 
-ROOT_PATH = os.getenv("ROOT_PATH", "").rstrip("/")
-router = APIRouter(prefix=ROOT_PATH)
+router = APIRouter()
 
 @app.on_event("startup")
 async def startup():
