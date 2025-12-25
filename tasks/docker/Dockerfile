@@ -8,7 +8,7 @@ WORKDIR /app
 
 # ---------- build stage ----------
 FROM base AS builder
-RUN python -m pip install --upgrade pip setuptools wheel
+RUN python -m pip install --no-cache-dir wheel
 
 COPY pyproject.toml ./
 RUN python -m pip wheel --wheel-dir /wheels .
@@ -24,14 +24,13 @@ RUN python -m pip install --no-index --find-links=/wheels KubSU && rm -rf /wheel
 COPY src ./src
 
 ENV PYTHONPATH=/app \
-    PORT=8002 \
-    APP_PREFIX=""
+    ROOT_PATH=""
 EXPOSE 8002
 
 USER appuser
-CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8002"]
 
-# ---------- test stage (тесты запускаются внутри собранного image) ----------
+# ---------- test stage ----------
 FROM prod AS test
 USER root
 COPY --from=builder /wheels-test /wheels-test
