@@ -78,12 +78,13 @@ jobs:
 
       - name: Run tests inside the image (no test image)
         run: |
-          docker run --rm --network ci-net \
+          docker run --rm --network ci-net --user 0 \
             -e DATABASE_URL="postgresql+psycopg://kubsu:kubsu@ci-db:5432/kubsu" \
             -e ROOT_PATH="" \
-            -v "${{ github.workspace }}/tasks/docker/tests:/app/tests:ro" \
+            -v "${{ github.workspace }}/tasks/docker:/work" \
+            -w /work \
             "${{ env.IMAGE }}:${{ github.sha }}" \
-            python -m pip install --no-cache-dir ".[test]" && pytest -q /app/tests
+            sh -lc 'python -m pip install --no-cache-dir ".[test]" && pytest -q tests'
 
       - name: Cleanup
         if: always()
