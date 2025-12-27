@@ -31,7 +31,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & push PROD image
+      - name: Build & push image
         uses: docker/build-push-action@v6
         with:
           context: tasks/docker
@@ -39,23 +39,15 @@ jobs:
           target: prod
           push: true
           tags: |
-            ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
-
-      - name: Build & push TEST image
-        uses: docker/build-push-action@v6
-        with:
-          context: tasks/docker
-          file: tasks/docker/Dockerfile
-          target: test
-          push: true
-          tags: |
-            ${{ env.IMAGE }}:test-${{ github.sha }}
+            ${{ env.IMAGE }}:latest
 
   test:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - uses: actions/checkout@v4
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -81,15 +73,17 @@ jobs:
           docker logs ci-db || true
           exit 1
 
-      - name: Pull test image
-        run: docker pull "${{ env.IMAGE }}:test-${{ github.sha }}"
+      - name: Pull image
+        run: docker pull "${{ env.IMAGE }}:${{ github.sha }}"
 
-      - name: Run tests in TEST image
+      - name: Run tests inside the image (no test image)
         run: |
-          docker run --rm --name users-tests --network ci-net \
+          docker run --rm --network ci-net \
             -e DATABASE_URL="postgresql+psycopg://kubsu:kubsu@ci-db:5432/kubsu" \
             -e ROOT_PATH="" \
-            "${{ env.IMAGE }}:test-${{ github.sha }}"
+            -v "${{ github.workspace }}/tasks/docker/tests:/app/tests:ro" \
+            "${{ env.IMAGE }}:${{ github.sha }}" \
+            python -m pip install --no-cache-dir ".[test]" && pytest -q /app/tests
 
       - name: Cleanup
         if: always()
@@ -104,7 +98,7 @@ jobs:
       - name: Podman login to GHCR
         run: podman login ghcr.io -u "${{ secrets.GHCR_USER }}" -p "${{ secrets.GHCR_TOKEN }}"
 
-      - name: Pull prod image
+      - name: Pull image
         run: podman pull "${{ env.IMAGE }}:${{ github.sha }}"
 
       - name: Run app (restart)
