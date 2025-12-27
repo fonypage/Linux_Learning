@@ -78,7 +78,6 @@ jobs:
         run: |
           docker run --rm --network "${{ job.services.db.network }}" --user 0 \
             -e DATABASE_URL="postgresql+psycopg://kubsu:kubsu@db:5432/kubsu" \
-            -e ROOT_PATH="" \
             -v "${{ github.workspace }}/tasks/docker:/work" \
             -w /work \
             "${{ env.IMAGE }}:${{ github.sha }}" \
@@ -101,5 +100,4 @@ jobs:
             --restart=always \
             --network host \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            -e ROOT_PATH="/${{ secrets.USERNAME }}" \
             "${{ env.IMAGE }}:${{ github.sha }}"
