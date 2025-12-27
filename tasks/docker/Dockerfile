@@ -17,8 +17,6 @@ RUN adduser --disabled-password --gecos "" appuser
 COPY --from=builder /wheels /wheels
 RUN python -m pip install --no-index --find-links=/wheels KubSU && rm -rf /wheels
 
-COPY src ./src
-
 ENV PYTHONPATH=/app \
     ROOT_PATH=""
 EXPOSE 8002
