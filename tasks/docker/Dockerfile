@@ -25,3 +25,11 @@ EXPOSE 8002
 
 USER appuser
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8002"]
+
+FROM prod AS test
+USER root
+COPY --from=builder /wheels-test /wheels-test
+RUN python -m pip install --no-index --find-links=/wheels-test KubSU[test] && rm -rf /wheels-test
+COPY tests ./tests
+USER appuser
+CMD ["pytest", "-q", "tests"]
